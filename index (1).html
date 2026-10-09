@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Планер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3EE; --card:#FFFFFF; --ink:#1B2440; --muted:#6A7088; --line:#D9DCE4;
+  --accent:#2B48C8; --accent-ink:#FFFFFF; --mark:#F7DC5B; --mark-ink:#1B2440;
+  --good:#2C8A57; --bad:#C2393B; --soft:#E8EBF6;
+  --display:"Unbounded", "Arial Black", system-ui, sans-serif;
+  --body:"Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11141C; --card:#1A1E2A; --ink:#E7E9F2; --muted:#9298AD; --line:#2B3040;
+    --accent:#8FA3FF; --accent-ink:#11141C; --mark:#E3C43E; --mark-ink:#11141C;
+    --good:#5BC78A; --bad:#F07171; --soft:#232838;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11141C; --card:#1A1E2A; --ink:#E7E9F2; --muted:#9298AD; --line:#2B3040;
+  --accent:#8FA3FF; --accent-ink:#11141C; --mark:#E3C43E; --mark-ink:#11141C;
+  --good:#5BC78A; --bad:#F07171; --soft:#232838;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(var(--line) 1px, transparent 1.2px);
+  background-size:20px 20px;
+  color:var(--ink); font:16px/1.5 var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:600px;margin:0 auto;padding:20px 16px 110px}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px;min-width:0}
+.top h1{min-width:0;overflow-wrap:anywhere}
+h1{font:700 clamp(1.35rem,6vw,1.75rem)/1.1 var(--display);margin:0;letter-spacing:-.01em}
+h2{font:500 1.05rem/1.25 var(--display);margin:0 0 12px}
+h3{font:600 1rem/1.3 var(--body);margin:0}
+.sync{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.mark{background:linear-gradient(transparent 52%, var(--mark) 52%, var(--mark) 92%, transparent 92%);padding:0 .1em;color:inherit}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.row{display:flex;gap:8px;align-items:center}
+.between{justify-content:space-between}
+.wrapflex{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+input,select,button,textarea{font:inherit;color:inherit}
+input[type=text],input[type=number],input[type=date],input[type=time],input[type=email],input[type=password],select{
+  background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;width:100%;
+}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{cursor:pointer;border:0;background:none}
+.btn{background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px 14px;font-weight:600;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn.sm{padding:6px 10px;font-size:.85rem;border-radius:8px}
+.icon{width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;color:var(--muted);flex:none}
+.icon:hover{background:var(--soft);color:var(--ink)}
+.x{font-size:1.2rem;line-height:1}
+.check{appearance:none;width:22px;height:22px;border:2px solid var(--muted);border-radius:7px;flex:none;display:grid;place-items:center;cursor:pointer;background:var(--card);margin:0}
+.check:checked{background:var(--accent);border-color:var(--accent)}
+.check:checked::after{content:"";width:6px;height:11px;border:solid var(--accent-ink);border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.done .t{text-decoration:line-through;color:var(--muted)}
+.badge{display:inline-block;font-size:.75rem;padding:1px 7px;border-radius:999px;background:var(--soft);color:var(--muted);margin-left:6px;vertical-align:1px;white-space:nowrap}
+.badge.red{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.badge.green{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+.sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px;flex:none}
+
+/* week strip */
+.week{display:grid;grid-template-columns:auto repeat(7,1fr) auto;gap:4px;align-items:center;margin-bottom:16px}
+.day{display:flex;flex-direction:column;align-items:center;padding:8px 0;border-radius:12px}
+.day .wd{font-size:.75rem;color:var(--muted)}
+.day .dn{font:500 1.05rem var(--display)}
+.day.sel{background:var(--mark);color:var(--mark-ink)}
+.day.sel .wd{color:var(--mark-ink)}
+.day.today:not(.sel) .dn{color:var(--accent)}
+.day .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);margin-top:3px}
+.day .dot.none{background:transparent}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px}
+.dayhead h2{margin:0}
+.task{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.task:last-of-type{border-bottom:0}
+.task .time{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600;min-width:44px}
+.add{display:grid;grid-template-columns:1fr 104px;gap:8px;margin-top:12px}
+.add .full{grid-column:1/-1}
+.bar{height:8px;border-radius:8px;background:var(--soft);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:8px;transition:width .3s}
+.bar.over>i{background:var(--bad)}
+.bar.green>i{background:var(--good)}
+
+/* focus */
+.focus{display:flex;align-items:center;gap:14px}
+.clock{font:700 2.2rem/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{padding:6px 12px;border-radius:8px;font-size:.9rem}
+.seg button.on{background:var(--card);box-shadow:0 0 0 1px var(--line);font-weight:600}
+.seg.full{display:flex;width:100%}
+.seg.full button{flex:1;padding:8px 4px}
+
+/* lists */
+.lst{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:14px 0;border-bottom:1px solid var(--line)}
+.lst:last-child{border-bottom:0}
+.lst b{font-weight:600}
+.item{display:grid;grid-template-columns:22px 1fr auto auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.item .sum{font-variant-numeric:tabular-nums;font-weight:600}
+.additem{display:grid;grid-template-columns:1fr 64px 96px auto;gap:8px;margin-top:12px}
+.totals{display:flex;justify-content:space-between;margin-top:14px;font-variant-numeric:tabular-nums}
+
+/* finance */
+.big{font:700 2rem/1.1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stat{background:var(--soft);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font-variant-numeric:tabular-nums;font-size:1.1rem}
+.cat{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;margin:8px 0;font-size:.92rem}
+.op{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.op:last-child{border-bottom:0}
+.op .amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.op .amt.inc{color:var(--good)}
+.form2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.form2 .full{grid-column:1/-1}
+.monthnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .hd{text-align:center;font-size:.75rem;color:var(--muted);padding-bottom:4px}
+.cc{aspect-ratio:1/1.05;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;gap:4px;background:var(--bg);border:1px solid transparent;min-width:0}
+.cc .n{font-weight:600;font-variant-numeric:tabular-nums;font-size:.95rem}
+.cc.out{opacity:.35}
+.cc.today .n{color:var(--accent)}
+.cc.sel{background:var(--mark);color:var(--mark-ink)}
+.cc.sel .n{color:var(--mark-ink)}
+.cc.pick{background:var(--accent);color:var(--accent-ink)}
+.cc.pick .n{color:var(--accent-ink)}
+.cc.src{border-color:var(--accent)}
+.cc:disabled{cursor:default}
+.marks{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:90%}
+.marks i{width:6px;height:6px;border-radius:50%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.ag{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ag:last-child{border-bottom:0}
+.ag .k{font-size:.78rem;color:var(--muted);min-width:64px}
+
+/* uni */
+.cls{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:10px 0 10px 10px;border-bottom:1px solid var(--line);border-left:4px solid var(--c,var(--accent));margin-bottom:2px}
+.cls:last-child{border-bottom:0}
+.cls .time{font-variant-numeric:tabular-nums;font-weight:600}
+.hw{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.hw:last-child{border-bottom:0}
+.hw .check{margin-top:2px}
+.lab{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.lab:last-child{border-bottom:0}
+.pill{font-size:.8rem;padding:5px 10px;border-radius:999px;border:1.5px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.on{border-color:var(--good);background:var(--good);color:#fff}
+.pill.on.blue{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.labstats{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:.85rem;margin:8px 0 6px}
+.subj{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.subj:last-child{border-bottom:0}
+
+/* habits */
+.habit{padding:12px 0;border-bottom:1px solid var(--line)}
+.habit:last-child{border-bottom:0}
+.cells{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.72rem;color:var(--muted)}
+.cell button{width:100%;max-width:40px;aspect-ratio:1;border-radius:10px;border:1.5px solid var(--line);background:var(--bg)}
+.cell button.on{background:var(--good);border-color:var(--good)}
+.streak{font-variant-numeric:tabular-nums;font-weight:600}
+
+.empty{color:var(--muted);padding:6px 0;margin:0}
+.ai textarea{width:100%;min-height:64px;resize:vertical;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.err{color:var(--bad);font-size:.9rem;margin-top:8px}
+
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(10,14,25,.45);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow:auto}
+@media (min-width:640px){.ov{align-items:center}.sheet{border-radius:18px}}
+
+/* nav */
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.tabs .in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+.tabs button{padding:9px 0 11px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.7rem;color:var(--muted);min-width:0}
+.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on{color:var(--ink);font-weight:600}
+.tabs button.on svg{stroke:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw}
+.toast.show{opacity:1}
+@media (max-width:420px){
+  .additem{grid-template-columns:1fr 56px 84px}
+  .additem .btn{grid-column:1/-1}
+  .cat{grid-template-columns:96px 1fr auto}
+  .cc .n{font-size:.85rem}
+}
+#auth{position:fixed;inset:0;z-index:30;background:var(--bg);background-image:radial-gradient(var(--line) 1px, transparent 1.2px);background-size:20px 20px;
+  overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+#auth[hidden]{display:none}
+.authbox{width:100%;max-width:400px}
+.authbox h1{font-size:2.2rem;margin-bottom:6px}
+.authbox form{display:grid;gap:10px;margin-top:18px}
+.authbox input{background:var(--card)!important}
+.linkbtn{color:var(--accent);font-weight:500;padding:4px 0;text-align:left}
+.okmsg{color:var(--good);font-size:.92rem;margin:10px 0 0}
+body.locked{overflow:hidden}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1 id="title">День</h1><span class="row" style="gap:4px"><span class="sync" id="sync"></span><button class="icon" id="dataBtn" aria-label="Мои данные: экспорт и импорт" title="Экспорт и импорт"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></button></span></header>
+  <main id="view"></main>
+</div>
+<nav class="tabs" aria-label="Разделы"><div class="in" id="tabs"></div></nav>
+<div id="modal"></div>
+<div id="auth" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ================== НАСТРОЙКА ==================
+   Вставь сюда данные своего проекта Supabase
+   (Project Settings → API). Ключ — anon / publishable,
+   НИКОГДА не вставляй service_role / secret ключ. */
+const SUPABASE_URL='https://myixejvctnkveqkgetzr.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15aXhlanZjdG5rdmVxa2dldHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NTg0MDgsImV4cCI6MjEwNzEzNDQwOH0.rj1J1QIPZxyRN8LUxXnEaUiKDvlrjLr7XKT6OjDG83E';
+/* ============================================== */
+
+/* ---------- helpers ---------- */
+const MONTHS=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const MONTHS_G=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const WD=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const WD_FULL=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+const WD_ACC=['воскресенье','понедельник','вторник','среду','четверг','пятницу','субботу'];
+const WD_PL=['воскресенья','понедельники','вторники','среды','четверги','пятницы','субботы'];
+const EXP_CATS=['Продукты','Кафе и еда вне дома','Транспорт','Связь и подписки','Учёба','Развлечения','Одежда','Здоровье','Другое'];
+const INC_CATS=['Стипендия','Зарплата','Подарок','Другое'];
+const KINDS=['Лекция','Практика','Лабораторная','Семинар'];
+const COLORS=['#2B48C8','#C2393B','#2C8A57','#B7791F','#7B3FB8','#0E8A8A','#C2558A','#5A6B2E','#D2691E','#4A6FA5'];
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const today=()=>iso(new Date());
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const dow=s=>parse(s).getDay();
+const mondayOf=s=>addDays(s,-((dow(s)+6)%7));
+const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const rub=n=>(Math.round(n)||0).toLocaleString('ru-RU')+' ₽';
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+const human=s=>{const d=parse(s);return `${d.getDate()} ${MONTHS_G[d.getMonth()]}`};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function plural(n){const a=n%10,b=n%100;if(a===1&&b!==11)return'день';if(a>=2&&a<=4&&(b<10||b>=20))return'дня';return'дней'}
+function dueLabel(d){const n=daysBetween(today(),d);
+  if(n<0)return{t:`просрочено на ${-n} ${plural(-n)}`,c:'red'};
+  if(n===0)return{t:'сегодня',c:'red'};if(n===1)return{t:'завтра',c:''};
+  return{t:`через ${n} ${plural(n)}`,c:''}}
+
+function h(tag,props,...kids){
+  const el=document.createElement(tag);
+  for(const[k,v]of Object.entries(props||{})){
+    if(v==null||v===false)continue;
+    if(k.startsWith('on'))el.addEventListener(k.slice(2),v);
+    else if(k==='class')el.className=v;
+    else if(k==='style')el.style.cssText=v;
+    else if(k==='value'||k==='checked'||k==='disabled')el[k]=v;
+    else el.setAttribute(k,v===true?'':v);
+  }
+  for(const c of kids.flat()){if(c==null||c===false)continue;el.append(c instanceof Node?c:document.createTextNode(String(c)))}
+  return el;
+}
+let toastT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+function setSync(t){document.getElementById('sync').textContent=t}
+function armBtn(label,onConfirm,cls='btn ghost'){let armed=false;
+  return h('button',{class:cls,onclick:e=>{if(!armed){armed=true;e.currentTarget.textContent='Точно?';return}onConfirm()}},label)}
+
+/* ---------- state & storage ---------- */
+let KEY='planer:guest';
+const DEFAULT=()=>({tasks:[],lists:[],tx:[],budget:{limit:0},habits:[],events:[],uni:{subjects:[],schedule:[],hw:[],labs:[],parity:null}});
+function normalize(o){const d=DEFAULT();o=o||{};const arr=(v,f)=>Array.isArray(v)?v:f;const u=o.uni||{};return{
+  tasks:arr(o.tasks,[]),lists:arr(o.lists,[]),tx:arr(o.tx,[]),budget:Object.assign(d.budget,o.budget||{}),
+  habits:arr(o.habits,[]),events:arr(o.events,[]),
+  uni:{subjects:arr(u.subjects,[]),schedule:arr(u.schedule,[]),hw:arr(u.hw,[]),labs:arr(u.labs,[]),parity:u.parity||null}}}
+let S=DEFAULT();
+let sb=null,session=null,saveT=null,dirty=false,sample=null,downloads=null;
+
+function commit(){
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  dirty=true;clearTimeout(saveT);saveT=setTimeout(pushDb,800);
+  render();
+}
+async function pushDb(){
+  if(!session||!sb)return;
+  clearTimeout(saveT);setSync('Сохраняю…');
+  const {error}=await sb.from('planner_data').upsert({user_id:session.user.id,data:S,updated_at:new Date().toISOString()});
+  if(error){setSync('Нет связи, повторю');saveT=setTimeout(pushDb,5000)}
+  else{dirty=false;setSync('Сохранено')}
+}
+
+/* ---------- domain ---------- */
+const subj=id=>S.uni.subjects.find(s=>s.id===id);
+const subjName=id=>(subj(id)||{name:'Без предмета'}).name;
+const subjColor=id=>(subj(id)||{color:'var(--muted)'}).color;
+function repeatLabel(t){const r=t.repeat;if(!r)return'';
+  if(r.type==='daily')return'каждый день';if(r.type==='weekdays')return'по будням';
+  return'каждую '+WD_ACC[r.wd]}
+function occurs(t,d){
+  if(!t.repeat)return t.date===d;
+  if(d<t.date||(t.skip&&t.skip[d]))return false;
+  const w=dow(d);
+  if(t.repeat.type==='daily')return true;
+  if(t.repeat.type==='weekdays')return w>=1&&w<=5;
+  return w===t.repeat.wd;
+}
+const tasksOn=d=>S.tasks.filter(t=>occurs(t,d)).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
+const isDone=(t,d)=>t.repeat?!!(t.doneOn&&t.doneOn[d]):!!t.done;
+function toggleTask(t,d){if(t.repeat){t.doneOn=t.doneOn||{};if(t.doneOn[d])delete t.doneOn[d];else t.doneOn[d]=true}else t.done=!t.done;commit()}
+function weekOdd(d){const p=S.uni.parity;if(!p)return null;
+  const diff=Math.round(daysBetween(p.monday,mondayOf(d))/7);
+  return Math.abs(diff)%2===0?p.odd:!p.odd}
+function classesOn(d){const w=dow(d);if(w===0)return[];const odd=weekOdd(d);
+  return S.uni.schedule.filter(c=>c.wd===w&&(c.week==='all'||odd===null||(c.week==='odd')===odd))
+    .sort((a,b)=>(a.time||'').localeCompare(b.time||''))}
+function nextClassDate(sid,from){for(let i=1;i<=35;i++){const d=addDays(from,i);if(classesOn(d).some(c=>c.subj===sid))return d}return null}
+const hwDue=d=>S.uni.hw.filter(x=>!x.done&&x.due===d);
+
+/* ---------- ui state ---------- */
+const ui={tab:'day',day:today(),month:today().slice(0,7),calMonth:today().slice(0,7),calDay:today(),
+  openList:null,txType:'exp',dataSheet:false,importData:null,importErr:'',aiBusy:false,aiErr:'',pendingDel:null,picker:null,
+  uniTab:'sched',schedWd:Math.max(1,dow(today())),hwFilter:'active'};
+const TABS=[
+  {id:'day',name:'День',svg:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'},
+  {id:'cal',name:'Календарь',svg:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>'},
+  {id:'uni',name:'Универ',svg:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5M22 9v6"/>'},
+  {id:'shop',name:'Покупки',svg:'<path d="M5 8h14l-1.2 11a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>'},
+  {id:'money',name:'Финансы',svg:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16 15h2"/>'},
+  {id:'habits',name:'Привычки',svg:'<path d="M12 21c4-2.5 7-6 7-10a7 7 0 0 0-14 0c0 4 3 7.5 7 10z"/><path d="M9 11l2 2 4-4"/>'}
+];
+function go(tab,extra){ui.tab=tab;ui.openList=null;ui.pendingDel=null;Object.assign(ui,extra||{});render();window.scrollTo(0,0)}
+function renderTabs(){
+  const box=document.getElementById('tabs');box.innerHTML='';
+  for(const t of TABS){
+    const b=h('button',{class:ui.tab===t.id?'on':'','aria-current':ui.tab===t.id?'page':null,onclick:()=>go(t.id)});
+    b.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${t.svg}</svg>`;
+    b.append(t.name);box.append(b);
+  }
+}
+function render(){
+  renderTabs();
+  document.getElementById('title').textContent=({day:'День',cal:'Календарь',uni:'Университет',shop:'Покупки',money:'Финансы',habits:'Привычки'})[ui.tab];
+  const v=document.getElementById('view');v.innerHTML='';
+  v.append(...({day:viewDay,cal:viewCal,uni:viewUni,shop:viewShop,money:viewMoney,habits:viewHabits}[ui.tab])().flat(Infinity).filter(Boolean));
+  renderModal();
+}
+
+/* ---------- shared pieces ---------- */
+function taskRow(t,d){
+  const done=isDone(t,d),key=t.id+'|'+d,pending=ui.pendingDel===key;
+  const actions=pending?[
+    h('button',{class:'btn ghost sm',onclick:()=>{t.skip=t.skip||{};t.skip[d]=true;ui.pendingDel=null;commit()}},'Только этот день'),
+    h('button',{class:'btn ghost sm',onclick:()=>{S.tasks=S.tasks.filter(y=>y.id!==t.id);ui.pendingDel=null;commit();toast('Повтор удалён')}},'Всю серию'),
+    h('button',{class:'icon x','aria-label':'Отмена',onclick:()=>{ui.pendingDel=null;render()}},'×')
+  ]:[
+    !t.repeat?h('button',{class:'icon','aria-label':'Копировать на другие дни',title:'Копировать на другие дни',onclick:()=>openPicker({title:`Копировать «${t.text}»`,src:d,onDone:dates=>{
+      dates.forEach(ds=>S.tasks.push({id:uid(),date:ds,text:t.text,time:t.time,done:false}));commit();toast(`Скопировано на ${dates.length} ${plural(dates.length)}`)}})},
+      svgIcon('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>')):null,
+    h('button',{class:'icon x','aria-label':'Удалить задачу',onclick:()=>{
+      if(t.repeat){ui.pendingDel=key;render()}else{S.tasks=S.tasks.filter(y=>y.id!==t.id);commit()}}},'×')
+  ];
+  return h('div',{class:'task'+(done?' done':'')+(pending?' wrapflex':'')},
+    h('input',{type:'checkbox',class:'check',checked:done,'aria-label':'Готово',onchange:()=>toggleTask(t,d)}),
+    t.time?h('span',{class:'time'},t.time):null,
+    h('span',{class:'t grow'},t.text,t.repeat?h('span',{class:'badge'},'↻ '+repeatLabel(t)):null),
+    actions);
+}
+function svgIcon(inner){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('width','18');s.setAttribute('height','18');
+  s.setAttribute('fill','none');s.setAttribute('stroke','currentColor');s.setAttribute('stroke-width','1.8');s.setAttribute('stroke-linecap','round');s.setAttribute('stroke-linejoin','round');s.innerHTML=inner;return s}
+
+function addTaskForm(date){
+  const txt=h('input',{type:'text',class:'full',placeholder:'Что нужно сделать?','aria-label':'Новая задача'});
+  const tm=h('input',{type:'time','aria-label':'Время'});
+  const rep=h('select',{'aria-label':'Повтор'},
+    h('option',{value:''},'Один раз'),h('option',{value:'weekly'},'Каждую '+WD_ACC[dow(date)]),
+    h('option',{value:'daily'},'Каждый день'),h('option',{value:'weekdays'},'По будням'));
+  const add=()=>{const v=txt.value.trim();if(!v){txt.focus();return}
+    const t={id:uid(),date,text:v,time:tm.value||'',done:false};
+    if(rep.value){t.repeat={type:rep.value,wd:dow(date)};t.doneOn={}}
+    S.tasks.push(t);commit();if(rep.value)toast('Задача будет повторяться '+repeatLabel(t));
+    setTimeout(()=>document.querySelector('.add input[type=text]')?.focus(),0)};
+  txt.addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+  return h('div',{class:'add'},txt,rep,tm,h('button',{class:'btn full',onclick:add},'Добавить'));
+}
+
+/* ---------- DAY ---------- */
+function viewDay(){
+  const sel=parse(ui.day),monday=mondayOf(ui.day),t=today();
+  const week=h('div',{class:'week'},
+    h('button',{class:'icon','aria-label':'Предыдущая неделя',onclick:()=>{ui.day=addDays(ui.day,-7);render()}},'‹'),
+    [...Array(7)].map((_,i)=>{
+      const ds=addDays(monday,i),has=tasksOn(ds).length||hwDue(ds).length;
+      return h('button',{class:'day'+(ds===ui.day?' sel':'')+(ds===t?' today':''),onclick:()=>{ui.day=ds;ui.pendingDel=null;render()},'aria-label':human(ds)},
+        h('span',{class:'wd'},WD[i]),h('span',{class:'dn'},parse(ds).getDate()),h('span',{class:'dot'+(has?'':' none')}));
+    }),
+    h('button',{class:'icon','aria-label':'Следующая неделя',onclick:()=>{ui.day=addDays(ui.day,7);render()}},'›'));
+
+  const tasks=tasksOn(ui.day),done=tasks.filter(x=>isDone(x,ui.day)).length;
+  const classes=classesOn(ui.day);
+  const deadlines=S.uni.hw.filter(x=>!x.done&&(x.due===ui.day||(ui.day===t&&x.due<t))).sort((a,b)=>a.due.localeCompare(b.due));
+  const soon=ui.day===t?S.uni.hw.filter(x=>!x.done&&x.due>t&&daysBetween(t,x.due)<=3).sort((a,b)=>a.due.localeCompare(b.due)):[];
+
+  // one-line summary
+  const parts=[];
+  if(classes.length)parts.push(`${classes.length} ${classes.length===1?'пара':classes.length<5?'пары':'пар'}`);
+  if(tasks.length)parts.push(`задач: ${tasks.length-done} из ${tasks.length} осталось`);
+  if(deadlines.length)parts.push(`дедлайнов: ${deadlines.length}`);
+
+  const card=h('section',{class:'card'},
+    h('div',{class:'dayhead'},
+      h('h2',{},h('span',{class:'mark'},human(ui.day)),' ',h('span',{class:'muted small'},WD_FULL[sel.getDay()])),
+      ui.day!==t?h('button',{class:'btn ghost sm',onclick:()=>{ui.day=t;render()}},'Сегодня'):null),
+    parts.length?h('p',{class:'muted small',style:'margin:-6px 0 10px'},cap(parts.join(', '))):null,
+    tasks.length?h('div',{class:'bar',style:'margin-bottom:8px'},h('i',{style:`width:${done/tasks.length*100}%`})):null,
+    tasks.length?tasks.map(x=>taskRow(x,ui.day)):h('p',{class:'empty'},'На этот день задач нет. Добавь первую.'),
+    addTaskForm(ui.day));
+
+  const clsCard=classes.length?h('section',{class:'card'},h('h2',{},'Пары'),
+    classes.map(c=>h('div',{class:'cls',style:`--c:${subjColor(c.subj)}`},
+      h('span',{class:'time'},c.time||'—'),
+      h('span',{},h('b',{},subjName(c.subj)),h('br'),h('span',{class:'muted small'},[c.kind,c.room&&('ауд. '+c.room)].filter(Boolean).join(', '))),
+      h('span',{class:'muted small'},S.uni.hw.filter(x=>!x.done&&x.subj===c.subj).length?h('span',{class:'badge red'},'есть задания'):'')))):null;
+
+  const dlCard=(deadlines.length||soon.length)?h('section',{class:'card'},h('h2',{},'Дедлайны'),
+    [...deadlines,...soon].map(x=>hwRow(x,true))):null;
+
+  const lists=S.lists.filter(l=>l.date===ui.day);
+  const listCard=lists.length?h('section',{class:'card'},h('h2',{},'Покупки на этот день'),
+    lists.map(l=>h('button',{class:'lst',onclick:()=>go('shop',{openList:l.id})},
+      h('span',{},h('b',{},l.name),h('br'),h('span',{class:'muted small'},`${l.items.filter(i=>i.bought).length} из ${l.items.length} куплено`)),
+      h('span',{},rub(listTotal(l)))))):null;
+
+  return [week,card,clsCard,dlCard,listCard,focusCard()];
+}
+
+/* focus timer */
+const F={mode:25,left:25*60,run:false,int:null};
+function fmt(s){return `${pad(Math.floor(s/60))}:${pad(s%60)}`}
+function tick(){
+  F.left--;
+  if(F.left<=0){clearInterval(F.int);F.run=false;
+    toast(F.mode===25?'Фокус закончен. Сделай перерыв.':'Перерыв окончен. Возвращаемся!');
+    try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+    F.mode=F.mode===25?5:25;F.left=F.mode*60;if(ui.tab==='day')render();return}
+  const c=document.getElementById('clock');if(c)c.textContent=fmt(F.left);
+}
+function focusCard(){
+  const setMode=m=>{clearInterval(F.int);F.run=false;F.mode=m;F.left=m*60;render()};
+  return h('section',{class:'card'},
+    h('div',{class:'row between wrapflex',style:'margin-bottom:10px'},
+      h('h2',{style:'margin:0'},'Фокус'),
+      h('div',{class:'seg'},
+        h('button',{class:F.mode===25?'on':'',onclick:()=>setMode(25)},'25 мин работы'),
+        h('button',{class:F.mode===5?'on':'',onclick:()=>setMode(5)},'5 мин отдыха'))),
+    h('div',{class:'focus'},
+      h('span',{class:'clock',id:'clock'},fmt(F.left)),
+      h('span',{class:'grow'}),
+      h('button',{class:'btn',onclick:()=>{if(F.run){clearInterval(F.int);F.run=false}else{F.run=true;F.int=setInterval(tick,1000)}render()}},F.run?'Пауза':'Старт'),
+      h('button',{class:'btn ghost',onclick:()=>setMode(F.mode)},'Сброс')));
+}
+
+/* ---------- CALENDAR ---------- */
+function monthGrid(month,cellFn){
+  const [y,m]=month.split('-').map(Number);
+  const first=`${month}-01`,start=mondayOf(first);
+  const last=iso(new Date(y,m,0)),end=addDays(mondayOf(last),6);
+  const cells=[];for(let d=start;d<=end;d=addDays(d,1))cells.push(cellFn(d,d.slice(0,7)===month));
+  return h('div',{class:'cal'},WD.map(w=>h('div',{class:'hd'},w)),cells);
+}
+function shiftMonth(month,n){const[y,m]=month.split('-').map(Number);const d=new Date(y,m-1+n,1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}`}
+function monthTitle(month){const[y,m]=month.split('-').map(Number);return `${cap(MONTHS[m-1])} ${y}`}
+
+function viewCal(){
+  const t=today();
+  const grid=monthGrid(ui.calMonth,(d,inM)=>{
+    const marks=[];
+    if(tasksOn(d).length)marks.push('var(--accent)');
+    if(S.uni.hw.some(x=>!x.done&&x.due===d))marks.push('var(--bad)');
+    if(S.lists.some(l=>l.date===d))marks.push('var(--mark)');
+    if(S.events.some(e=>e.date===d))marks.push('var(--good)');
+    return h('button',{class:'cc'+(inM?'':' out')+(d===t?' today':'')+(d===ui.calDay?' sel':''),'aria-label':human(d),
+      onclick:()=>{ui.calDay=d;if(!inM)ui.calMonth=d.slice(0,7);ui.pendingDel=null;render()}},
+      h('span',{class:'n'},parse(d).getDate()),h('span',{class:'marks'},marks.map(c=>h('i',{style:`background:${c}`}))));
+  });
+  const d=ui.calDay;
+  const tasks=tasksOn(d),cls=classesOn(d),hws=S.uni.hw.filter(x=>x.due===d),lists=S.lists.filter(l=>l.date===d),evs=S.events.filter(e=>e.date===d);
+  const empty=!tasks.length&&!cls.length&&!hws.length&&!lists.length&&!evs.length;
+
+  const evName=h('input',{type:'text',placeholder:'Например: начало сессии','aria-label':'Событие'});
+  const evDate=h('input',{type:'date',value:ui.calDay,'aria-label':'Дата события'});
+  const addEv=()=>{const n=evName.value.trim();if(!n||!evDate.value){(n?evDate:evName).focus();return}
+    S.events.push({id:uid(),name:n,date:evDate.value});commit()};
+  evName.addEventListener('keydown',e=>{if(e.key==='Enter')addEv()});
+  const upcoming=[...S.events].filter(e=>e.date>=t).sort((a,b)=>a.date.localeCompare(b.date));
+  const past=S.events.filter(e=>e.date<t);
+
+  return [
+    h('section',{class:'card'},
+      h('div',{class:'monthnav'},
+        h('button',{class:'icon','aria-label':'Предыдущий месяц',onclick:()=>{ui.calMonth=shiftMonth(ui.calMonth,-1);render()}},'‹'),
+        h('h2',{style:'margin:0'},monthTitle(ui.calMonth)),
+        h('button',{class:'icon','aria-label':'Следующий месяц',onclick:()=>{ui.calMonth=shiftMonth(ui.calMonth,1);render()}},'›')),
+      grid,
+      h('div',{class:'legend'},
+        h('span',{},h('i',{style:'background:var(--accent)'}),'задачи'),h('span',{},h('i',{style:'background:var(--bad)'}),'дедлайны'),
+        h('span',{},h('i',{style:'background:var(--mark)'}),'покупки'),h('span',{},h('i',{style:'background:var(--good)'}),'важные даты'))),
+    h('section',{class:'card'},
+      h('div',{class:'dayhead'},h('h2',{},h('span',{class:'mark'},human(d)),' ',h('span',{class:'muted small'},WD_FULL[dow(d)])),
+        h('button',{class:'btn ghost sm',onclick:()=>go('day',{day:d})},'Открыть день')),
+      evs.map(e=>h('div',{class:'ag'},h('span',{class:'k'},'Событие'),h('b',{class:'grow'},e.name))),
+      cls.map(c=>h('div',{class:'ag'},h('span',{class:'k'},c.time||'Пара'),h('span',{class:'grow'},h('span',{class:'sdot',style:`background:${subjColor(c.subj)}`}),subjName(c.subj),h('span',{class:'muted small'},', '+c.kind.toLowerCase())))),
+      hws.map(x=>h('div',{class:'ag'+(x.done?' done':'')},h('span',{class:'k'},'Дедлайн'),h('span',{class:'t grow'},subjName(x.subj)+': '+x.text))),
+      lists.map(l=>h('div',{class:'ag'},h('span',{class:'k'},'Покупки'),h('button',{class:'grow',style:'text-align:left',onclick:()=>go('shop',{openList:l.id})},l.name,' ',h('span',{class:'muted small'},rub(listTotal(l)))))),
+      tasks.map(x=>taskRow(x,d)),
+      empty?h('p',{class:'empty'},'Свободный день.'):null,
+      addTaskForm(d)),
+    h('section',{class:'card'},h('h2',{},'Важные даты'),
+      h('p',{class:'muted small',style:'margin:-4px 0 10px'},'Сессия, экзамены, дни рождения. Покажу, сколько дней осталось.'),
+      h('div',{class:'form2'},h('div',{class:'full'},evName),evDate,h('button',{class:'btn',onclick:addEv},'Добавить')),
+      upcoming.map(e=>{const n=daysBetween(t,e.date);return h('div',{class:'op'},
+        h('span',{class:'grow'},h('b',{},e.name),h('br'),h('span',{class:'muted small'},human(e.date))),
+        h('span',{class:'amt'},n===0?h('span',{class:'mark'},'сегодня'):h('span',{},h('span',{class:'mark'},`${n}`),' ',plural(n))),
+        h('button',{class:'icon x','aria-label':'Удалить дату',onclick:()=>{S.events=S.events.filter(x=>x.id!==e.id);commit()}},'×'))}),
+      past.length?h('button',{class:'btn ghost sm',style:'margin-top:10px',onclick:()=>{S.events=S.events.filter(e=>e.date>=t);commit()}},`Убрать прошедшие (${past.length})`):null)
+  ];
+}
+
+/* ---------- copy picker ---------- */
+function openPicker({title,src,onDone}){ui.picker={title,src,onDone,sel:[],month:src.slice(0,7)};render()}
+function renderModal(){
+  const box=document.getElementById('modal');box.innerHTML='';
+  if(ui.dataSheet){box.append(dataSheet());return}
+  const p=ui.picker;if(!p)return;
+  const close=()=>{ui.picker=null;render()};
+  const toggle=d=>{const i=p.sel.indexOf(d);if(i>=0)p.sel.splice(i,1);else p.sel.push(d);renderModal()};
+  const w=dow(p.src);
+  const allSame=()=>{const[y,m]=p.month.split('-').map(Number);const n=new Date(y,m,0).getDate();
+    for(let i=1;i<=n;i++){const d=`${p.month}-${pad(i)}`;if(dow(d)===w&&d!==p.src&&d>=today()&&!p.sel.includes(d))p.sel.push(d)}renderModal()};
+  const grid=monthGrid(p.month,(d,inM)=>h('button',{class:'cc'+(inM?'':' out')+(p.sel.includes(d)?' pick':'')+(d===p.src?' src':''),
+    disabled:d===p.src,'aria-pressed':p.sel.includes(d)?'true':'false','aria-label':human(d),onclick:()=>toggle(d)},h('span',{class:'n'},parse(d).getDate())));
+  const ov=h('div',{class:'ov',onclick:e=>{if(e.target===ov)close()}},
+    h('div',{class:'sheet',role:'dialog','aria-modal':'true','aria-label':p.title},
+      h('div',{class:'row between',style:'margin-bottom:6px'},h('h2',{style:'margin:0'},p.title),h('button',{class:'icon x','aria-label':'Закрыть',onclick:close},'×')),
+      h('p',{class:'muted small',style:'margin:0 0 12px'},'Отметь дни, на которые нужно скопировать. Исходный день обведён.'),
+      h('div',{class:'monthnav'},
+        h('button',{class:'icon','aria-label':'Предыдущий месяц',onclick:()=>{p.month=shiftMonth(p.month,-1);renderModal()}},'‹'),
+        h('b',{},monthTitle(p.month)),
+        h('button',{class:'icon','aria-label':'Следующий месяц',onclick:()=>{p.month=shiftMonth(p.month,1);renderModal()}},'›')),
+      grid,
+      h('div',{class:'row wrapflex',style:'margin-top:12px'},
+        h('button',{class:'btn ghost sm',onclick:allSame},`Все ${WD_PL[w]} месяца`),
+        p.sel.length?h('button',{class:'btn ghost sm',onclick:()=>{p.sel=[];renderModal()}},'Сбросить'):null),
+      h('div',{class:'row',style:'margin-top:14px'},
+        h('button',{class:'btn ghost grow',onclick:close},'Отмена'),
+        h('button',{class:'btn grow',disabled:!p.sel.length,onclick:()=>{const s=[...p.sel].sort();const f=p.onDone;ui.picker=null;f(s)}},
+          p.sel.length?`Копировать (${p.sel.length})`:'Копировать'))));
+  box.append(ov);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(ui.picker||ui.dataSheet)){ui.picker=null;ui.dataSheet=false;ui.importData=null;render()}});
+document.getElementById('dataBtn').addEventListener('click',()=>{ui.dataSheet=true;ui.importData=null;ui.importErr='';renderModal()});
+
+/* ---------- export / import ---------- */
+function counts(d){return `задач: ${d.tasks.length}, списков: ${d.lists.length}, операций: ${d.tx.length}, предметов: ${d.uni.subjects.length}, лаб: ${d.uni.labs.length}, привычек: ${d.habits.length}`}
+async function exportData(){
+  const str=JSON.stringify({app:'planer',version:1,exportedAt:new Date().toISOString(),data:S},null,1);
+  const filename=`planer-${today()}.json`;
+  if(downloads){
+    try{await downloads.save({filename,data:str});toast('Файл сохранён')}
+    catch(e){if(e&&e.code==='declined')return;if(e&&e.code==='rate_limited'){toast('Подожди пару секунд и попробуй снова');return}toast('Не удалось сохранить файл')}
+    return;
+  }
+  try{const url=URL.createObjectURL(new Blob([str],{type:'application/json'}));
+    const a=h('a',{href:url,download:filename});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Файл сохранён')}
+  catch(e){toast('Не удалось сохранить файл')}
+}
+function readImport(file){
+  ui.importErr='';ui.importData=null;
+  const r=new FileReader();
+  r.onload=()=>{try{const j=JSON.parse(r.result);const raw=j&&j.app==='planer'&&j.data?j.data:j;
+      if(!raw||typeof raw!=='object'||!('tasks' in raw||'lists' in raw||'uni' in raw))throw 0;
+      ui.importData=normalize(raw);ui.importDate=j.exportedAt||null}
+    catch(e){ui.importErr='Это не файл планера. Выбери файл planer-….json, сохранённый через «Экспорт».'}
+    renderModal()};
+  r.onerror=()=>{ui.importErr='Не удалось прочитать файл.';renderModal()};
+  r.readAsText(file);
+}
+function dataSheet(){
+  const close=()=>{ui.dataSheet=false;ui.importData=null;ui.importErr='';renderModal()};
+  const file=h('input',{type:'file',accept:'.json,application/json',style:'display:none',onchange:e=>{const f=e.target.files[0];if(f)readImport(f)}});
+  const imp=ui.importData;
+  const ov=h('div',{class:'ov',onclick:e=>{if(e.target===ov)close()}},
+    h('div',{class:'sheet',role:'dialog','aria-modal':'true','aria-label':'Мои данные'},
+      h('div',{class:'row between',style:'margin-bottom:6px'},h('h2',{style:'margin:0'},'Мои данные'),h('button',{class:'icon x','aria-label':'Закрыть',onclick:close},'×')),
+      h('p',{class:'muted small',style:'margin:0 0 14px'},'Данные синхронизируются автоматически. Здесь можно сделать резервную копию или загрузить данные из старой версии планера.'),
+      session?h('div',{class:'card',style:'margin-bottom:10px'},
+        h('h3',{},'Аккаунт'),
+        h('p',{class:'muted small',style:'margin:4px 0 10px'},'Ты вошёл как '+session.user.email),
+        h('button',{class:'btn ghost',onclick:logout},'Выйти')):null,
+      h('div',{class:'card',style:'margin-bottom:10px'},
+        h('h3',{},'Экспорт'),
+        h('p',{class:'muted small',style:'margin:4px 0 10px'},'Сейчас в планере '+counts(S)+'.'),
+        h('button',{class:'btn',onclick:exportData},'Сохранить в файл')),
+      h('div',{class:'card',style:'margin-bottom:0'},
+        h('h3',{},'Импорт'),
+        imp?[
+          h('p',{class:'small',style:'margin:4px 0 6px'},'В файле'+(ui.importDate?' от '+human(ui.importDate.slice(0,10)):'')+': '+counts(imp)+'.'),
+          h('p',{class:'small',style:'margin:0 0 10px;color:var(--bad)'},'Текущие данные в этом планере заменятся данными из файла.'),
+          h('div',{class:'row wrapflex'},
+            armBtn('Заменить мои данные',()=>{S=imp;ui.importData=null;ui.dataSheet=false;commit();toast('Данные загружены')},'btn'),
+            h('button',{class:'btn ghost',onclick:()=>{ui.importData=null;renderModal()}},'Отмена'))
+        ]:[
+          h('p',{class:'muted small',style:'margin:4px 0 10px'},'Загрузи файл, сохранённый через «Экспорт». Перед заменой я покажу, что в нём.'),
+          file,h('button',{class:'btn ghost',onclick:()=>file.click()},'Выбрать файл')
+        ],
+        ui.importErr?h('p',{class:'err'},ui.importErr):null)));
+  return ov;
+}
+
+/* ---------- UNIVERSITY ---------- */
+function subjSelect(){const s=h('select',{'aria-label':'Предмет'},S.uni.subjects.map(x=>h('option',{value:x.id},x.name)));return s}
+function hwRow(x,showSubj){
+  const dl=dueLabel(x.due);
+  return h('div',{class:'hw'+(x.done?' done':'')},
+    h('input',{type:'checkbox',class:'check',checked:x.done,'aria-label':'Сделано',onchange:()=>{x.done=!x.done;commit();if(x.done)toast('Задание выполнено')}}),
+    h('span',{class:'grow'},
+      showSubj!==false?h('span',{class:'small'},h('span',{class:'sdot',style:`background:${subjColor(x.subj)}`}),h('b',{},subjName(x.subj))):null,
+      showSubj!==false?h('br'):null,
+      h('span',{class:'t'},x.text),h('br'),
+      h('span',{class:'muted small'},'до '+human(x.due)),x.done?null:h('span',{class:'badge '+dl.c},dl.t)),
+    h('button',{class:'icon x','aria-label':'Удалить задание',onclick:()=>{S.uni.hw=S.uni.hw.filter(y=>y.id!==x.id);commit()}},'×'));
+}
+function viewUni(){
+  if(!S.uni.subjects.length&&ui.uniTab!=='subj')ui.uniTab='subj';
+  const tabs=h('div',{class:'seg full',style:'margin-bottom:14px'},
+    [['sched','Расписание'],['hw','Задания'],['labs','Лабы'],['subj','Предметы']].map(([k,n])=>{
+      const cnt=k==='hw'?S.uni.hw.filter(x=>!x.done).length:0;
+      return h('button',{class:ui.uniTab===k?'on':'',onclick:()=>{ui.uniTab=k;render()}},n,cnt?` ${cnt}`:'')}));
+  const body={sched:uniSched,hw:uniHw,labs:uniLabs,subj:uniSubj}[ui.uniTab]();
+  return [tabs,body];
+}
+function uniSubj(){
+  const inp=h('input',{type:'text',placeholder:'Например: Теория электросвязи','aria-label':'Название предмета'});
+  const add=()=>{const v=inp.value.trim();if(!v){inp.focus();return}
+    S.uni.subjects.push({id:uid(),name:v,color:COLORS[S.uni.subjects.length%COLORS.length]});commit();
+    setTimeout(()=>document.querySelector('#view input[type=text]')?.focus(),0)};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+  return [
+    h('section',{class:'card'},h('h2',{},'Добавить предмет'),
+      !S.uni.subjects.length?h('p',{class:'muted small',style:'margin:-4px 0 10px'},'Начни с предметов. Потом сможешь собрать из них расписание, задания и лабы.'):null,
+      h('div',{class:'row'},inp,h('button',{class:'btn',onclick:add},'Добавить'))),
+    S.uni.subjects.length?h('section',{class:'card'},h('h2',{},'Мои предметы'),
+      S.uni.subjects.map(s=>{
+        const labs=S.uni.labs.filter(l=>l.subj===s.id),hw=S.uni.hw.filter(x=>x.subj===s.id&&!x.done).length,pairs=S.uni.schedule.filter(c=>c.subj===s.id).length;
+        const color=h('input',{type:'color',value:s.color,'aria-label':'Цвет предмета',style:'width:32px;height:32px;border:0;padding:0;background:none;cursor:pointer',onchange:e=>{s.color=e.target.value;commit()}});
+        return h('div',{class:'subj'},color,
+          h('span',{class:'grow'},h('b',{},s.name),h('br'),h('span',{class:'muted small'},`пар в неделю: ${pairs}, заданий: ${hw}, лаб: ${labs.filter(l=>l.done).length}/${labs.length}`)),
+          armBtn('Удалить',()=>{S.uni.subjects=S.uni.subjects.filter(x=>x.id!==s.id);
+            S.uni.schedule=S.uni.schedule.filter(c=>c.subj!==s.id);S.uni.hw=S.uni.hw.filter(c=>c.subj!==s.id);S.uni.labs=S.uni.labs.filter(c=>c.subj!==s.id);
+            commit();toast('Предмет удалён вместе с его парами, заданиями и лабами')},'btn ghost sm'))})):null
+  ];
+}
+function uniSched(){
+  const odd=weekOdd(today());
+  const setParity=o=>{S.uni.parity={monday:mondayOf(today()),odd:o};commit()};
+  const wd=ui.schedWd;
+  const list=S.uni.schedule.filter(c=>c.wd===wd).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const ss=subjSelect(),tm=h('input',{type:'time','aria-label':'Начало пары'}),room=h('input',{type:'text',placeholder:'Аудитория','aria-label':'Аудитория'});
+  const kind=h('select',{'aria-label':'Тип занятия'},KINDS.map(k=>h('option',{},k)));
+  const wk=h('select',{'aria-label':'Неделя'},h('option',{value:'all'},'Каждую неделю'),h('option',{value:'odd'},'Только нечётные'),h('option',{value:'even'},'Только чётные'));
+  const add=()=>{S.uni.schedule.push({id:uid(),subj:ss.value,wd,time:tm.value,room:room.value.trim(),kind:kind.value,week:wk.value});commit()};
+  const days=['','Пн','Вт','Ср','Чт','Пт','Сб'];
+  return [
+    h('section',{class:'card'},
+      h('div',{class:'row between wrapflex'},
+        h('span',{},odd===null?h('span',{class:'muted small'},'Укажи, какая сейчас неделя:'):h('span',{},'Сейчас ',h('span',{class:'mark'},odd?'нечётная':'чётная'),' неделя')),
+        h('div',{class:'seg'},h('button',{class:odd===true?'on':'',onclick:()=>setParity(true)},'Нечётная'),h('button',{class:odd===false?'on':'',onclick:()=>setParity(false)},'Чётная')))),
+    h('section',{class:'card'},
+      h('div',{class:'seg full',style:'margin-bottom:14px'},[1,2,3,4,5,6].map(i=>h('button',{class:wd===i?'on':'',onclick:()=>{ui.schedWd=i;render()}},days[i]))),
+      h('h2',{},cap(WD_FULL[wd])),
+      list.length?list.map(c=>h('div',{class:'cls',style:`--c:${subjColor(c.subj)}`},
+        h('span',{class:'time'},c.time||'—'),
+        h('span',{},h('b',{},subjName(c.subj)),c.week!=='all'?h('span',{class:'badge'},c.week==='odd'?'нечёт.':'чёт.'):null,h('br'),
+          h('span',{class:'muted small'},[c.kind,c.room&&('ауд. '+c.room)].filter(Boolean).join(', '))),
+        h('button',{class:'icon x','aria-label':'Удалить пару',onclick:()=>{S.uni.schedule=S.uni.schedule.filter(x=>x.id!==c.id);commit()}},'×')))
+        :h('p',{class:'empty'},'В этот день пар нет.'),
+      h('h3',{style:'margin:16px 0 8px'},'Добавить пару'),
+      h('div',{class:'form2'},h('div',{class:'full'},ss),tm,room,kind,wk,h('button',{class:'btn full',onclick:add},'Добавить в '+WD_ACC[wd])))
+  ];
+}
+function uniHw(){
+  const ss=subjSelect(),txt=h('input',{type:'text',placeholder:'Что сделать: решить задачи 1–5, подготовить доклад…','aria-label':'Задание'});
+  const due=h('input',{type:'date',value:addDays(today(),7),'aria-label':'Дедлайн'});
+  const toNext=()=>{const d=nextClassDate(ss.value,today());if(d){due.value=d;toast('Дедлайн: '+human(d)+', '+WD_FULL[dow(d)])}else toast('Пары по этому предмету нет в расписании')};
+  const add=()=>{const v=txt.value.trim();if(!v){txt.focus();return}if(!due.value){due.focus();return}
+    S.uni.hw.push({id:uid(),subj:ss.value,text:v,due:due.value,done:false});commit();toast('Задание добавлено')};
+  txt.addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+  const act=S.uni.hw.filter(x=>!x.done).sort((a,b)=>a.due.localeCompare(b.due));
+  const fin=S.uni.hw.filter(x=>x.done).sort((a,b)=>b.due.localeCompare(a.due));
+  const shown=ui.hwFilter==='active'?act:fin;
+  return [
+    h('section',{class:'card'},h('h2',{},'Новое задание'),
+      h('div',{class:'form2'},h('div',{class:'full'},ss),h('div',{class:'full'},txt),due,
+        h('button',{class:'btn ghost',onclick:toNext},'К следующей паре'),h('button',{class:'btn full',onclick:add},'Добавить'))),
+    h('section',{class:'card'},
+      h('div',{class:'row between',style:'margin-bottom:6px'},h('h2',{style:'margin:0'},'Задания'),
+        h('div',{class:'seg'},h('button',{class:ui.hwFilter==='active'?'on':'',onclick:()=>{ui.hwFilter='active';render()}},`Активные ${act.length}`),
+          h('button',{class:ui.hwFilter==='done'?'on':'',onclick:()=>{ui.hwFilter='done';render()}},`Сделано ${fin.length}`))),
+      shown.length?shown.map(x=>hwRow(x)):h('p',{class:'empty'},ui.hwFilter==='active'?'Всё сделано. Можно отдыхать.':'Пока ничего не выполнено.'))
+  ];
+}
+function uniLabs(){
+  const ss=subjSelect(),name=h('input',{type:'text',placeholder:'Название (необязательно)','aria-label':'Название лабы'});
+  const cnt=h('input',{type:'number',min:'1',max:'30',value:'1','aria-label':'Сколько лаб добавить',inputmode:'numeric'});
+  const add=()=>{const n=Math.min(30,Math.max(1,Math.round(num(cnt.value))||1));const sid=ss.value;
+    const have=S.uni.labs.filter(l=>l.subj===sid).length;
+    for(let i=0;i<n;i++)S.uni.labs.push({id:uid(),subj:sid,name:(n===1&&name.value.trim())||`Лабораторная ${have+i+1}`,done:false,passed:false});
+    commit();toast(n===1?'Лаба добавлена':`Добавлено лаб: ${n}`)};
+  const all=S.uni.labs,dn=all.filter(l=>l.done).length,ps=all.filter(l=>l.passed).length;
+  const bySubj=S.uni.subjects.map(s=>({s,labs:S.uni.labs.filter(l=>l.subj===s.id)})).filter(g=>g.labs.length);
+  return [
+    h('section',{class:'card'},h('h2',{},'Добавить лабы'),
+      h('p',{class:'muted small',style:'margin:-4px 0 10px'},'Укажи количество, и я создам их списком с номерами.'),
+      h('div',{class:'form2'},h('div',{class:'full'},ss),h('div',{class:'full'},name),cnt,h('button',{class:'btn',onclick:add},'Добавить'))),
+    all.length?h('section',{class:'card'},
+      h('div',{class:'row between'},h('span',{},'Всего лаб: ',h('b',{},all.length)),h('span',{},'сдано ',h('span',{class:'mark'},h('b',{},`${ps} из ${all.length}`)))),
+      h('div',{class:'bar green',style:'margin-top:10px'},h('i',{style:`width:${ps/all.length*100}%`})),
+      h('p',{class:'muted small',style:'margin:8px 0 0'},`Сделано, но ещё не сдано: ${dn-all.filter(l=>l.done&&l.passed).length}`)):null,
+    bySubj.map(({s,labs})=>{const d=labs.filter(l=>l.done).length,p=labs.filter(l=>l.passed).length;
+      return h('section',{class:'card',style:`border-left:4px solid ${s.color}`},
+        h('h2',{style:'margin-bottom:4px'},s.name),
+        h('div',{class:'labstats'},
+          h('span',{class:'muted'},'Сделано'),h('div',{class:'bar'},h('i',{style:`width:${d/labs.length*100}%`})),h('b',{},`${d}/${labs.length}`),
+          h('span',{class:'muted'},'Сдано'),h('div',{class:'bar green'},h('i',{style:`width:${p/labs.length*100}%`})),h('b',{},`${p}/${labs.length}`)),
+        labs.map(l=>h('div',{class:'lab'},
+          h('span',{class:'grow'+(l.passed?' muted':'')},l.name),
+          h('button',{class:'pill blue'+(l.done?' on':''),'aria-pressed':l.done?'true':'false',onclick:()=>{l.done=!l.done;if(!l.done)l.passed=false;commit()}},l.done?'✓ Сделана':'Сделана'),
+          h('button',{class:'pill'+(l.passed?' on':''),'aria-pressed':l.passed?'true':'false',onclick:()=>{l.passed=!l.passed;if(l.passed)l.done=true;commit();if(l.passed)toast('Лаба сдана!')}},l.passed?'✓ Сдана':'Сдана'),
+          h('button',{class:'icon x','aria-label':'Удалить лабу',onclick:()=>{S.uni.labs=S.uni.labs.filter(x=>x.id!==l.id);commit()}},'×'))))})
+  ];
+}
+
+/* ---------- SHOPPING ---------- */
+const itemSum=i=>num(i.price)*(num(i.qty)||1);
+const listTotal=l=>l.items.reduce((s,i)=>s+itemSum(i),0);
+const listBought=l=>l.items.filter(i=>i.bought).reduce((s,i)=>s+itemSum(i),0);
+function copyList(l){openPicker({title:`Копировать «${l.name}»`,src:l.date,onDone:dates=>{
+  dates.forEach(d=>S.lists.push({id:uid(),name:l.name,date:d,items:l.items.map(i=>({id:uid(),name:i.name,qty:i.qty,price:i.price,bought:null}))}));
+  commit();toast(`Список скопирован на ${dates.length} ${plural(dates.length)}`)}})}
+
+function viewShop(){
+  if(ui.openList){const l=S.lists.find(x=>x.id===ui.openList);if(l)return viewList(l);ui.openList=null}
+  const name=h('input',{type:'text',placeholder:'Например: продукты на неделю','aria-label':'Название списка'});
+  const date=h('input',{type:'date',value:today(),'aria-label':'Дата покупки'});
+  const create=()=>{const n=name.value.trim()||'Список покупок';const l={id:uid(),name:n,date:date.value||today(),items:[]};
+    S.lists.unshift(l);ui.openList=l.id;commit()};
+  name.addEventListener('keydown',e=>{if(e.key==='Enter')create()});
+  const t=today();
+  const upcoming=S.lists.filter(l=>l.date>=t).sort((a,b)=>a.date.localeCompare(b.date));
+  const past=S.lists.filter(l=>l.date<t).sort((a,b)=>b.date.localeCompare(a.date));
+  const row=l=>h('button',{class:'lst',onclick:()=>{ui.openList=l.id;render();window.scrollTo(0,0)}},
+    h('span',{},h('b',{},l.name),h('br'),h('span',{class:'muted small'},`${human(l.date)}, ${l.items.filter(i=>i.bought).length} из ${l.items.length} куплено`)),
+    h('span',{style:'text-align:right'},rub(listTotal(l)),h('br'),h('span',{class:'muted small'},'план')));
+  return [
+    h('section',{class:'card'},h('h2',{},'Новый список'),
+      h('div',{class:'form2'},h('div',{class:'full'},name),date,h('button',{class:'btn',onclick:create},'Создать'))),
+    sample?aiCard():null,
+    h('section',{class:'card'},h('h2',{},'Предстоящие'),upcoming.length?upcoming.map(row):h('p',{class:'empty'},'Запланированных списков нет.')),
+    past.length?h('section',{class:'card'},h('h2',{},'Прошедшие'),past.map(row)):null,
+    h('p',{class:'muted small',style:'padding:0 4px'},'Купленные товары сами попадают в «Финансы». Любой список можно скопировать на другие дни, например на все субботы месяца.')
+  ];
+}
+function viewList(l){
+  const nm=h('input',{type:'text',placeholder:'Товар','aria-label':'Товар'});
+  const q=h('input',{type:'number',placeholder:'Кол.',min:'0',step:'any',value:'1','aria-label':'Количество',inputmode:'decimal'});
+  const p=h('input',{type:'number',placeholder:'Цена ₽',min:'0',step:'any','aria-label':'Цена за штуку',inputmode:'decimal'});
+  const add=()=>{const n=nm.value.trim();if(!n){nm.focus();return}
+    l.items.push({id:uid(),name:n,qty:num(q.value)||1,price:num(p.value),bought:null});commit();
+    setTimeout(()=>document.querySelector('.additem input')?.focus(),0)};
+  [nm,q,p].forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')add()}));
+  const allBought=l.items.length&&l.items.every(i=>i.bought);
+  return [
+    h('div',{class:'row between',style:'margin-bottom:14px'},
+      h('button',{class:'btn ghost',onclick:()=>{ui.openList=null;render()}},'‹ Все списки'),
+      h('button',{class:'btn',onclick:()=>copyList(l)},'Копировать на дни')),
+    h('section',{class:'card'},
+      h('div',{class:'form2',style:'margin-bottom:12px'},
+        h('input',{type:'text',class:'full',value:l.name,'aria-label':'Название списка',onchange:e=>{l.name=e.target.value.trim()||l.name;commit()}}),
+        h('input',{type:'date',value:l.date,'aria-label':'Дата',onchange:e=>{if(e.target.value){l.date=e.target.value;commit()}}}),
+        h('button',{class:'btn ghost',disabled:!l.items.length,onclick:()=>{const d=today();l.items.forEach(i=>{if(!allBought){if(!i.bought)i.bought=d}else i.bought=null});commit()}},allBought?'Снять отметки':'Всё куплено')),
+      l.items.length?l.items.map(i=>h('div',{class:'item'+(i.bought?' done':'')},
+        h('input',{type:'checkbox',class:'check',checked:!!i.bought,'aria-label':'Куплено',onchange:()=>{i.bought=i.bought?null:today();commit()}}),
+        h('span',{class:'t'},i.name,h('br'),h('span',{class:'muted small'},`${i.qty} × ${rub(i.price)}`)),
+        h('span',{class:'sum'},rub(itemSum(i))),
+        h('button',{class:'icon x','aria-label':'Удалить товар',onclick:()=>{l.items=l.items.filter(x=>x.id!==i.id);commit()}},'×')
+      )):h('p',{class:'empty'},'Добавь товары: название, количество и цену за штуку.'),
+      h('div',{class:'additem'},nm,q,p,h('button',{class:'btn',onclick:add},'Добавить')),
+      h('div',{class:'totals'},h('span',{class:'muted'},'По плану'),h('b',{},rub(listTotal(l)))),
+      h('div',{class:'totals',style:'margin-top:4px'},h('span',{class:'muted'},'Уже потрачено'),h('b',{},h('span',{class:'mark'},rub(listBought(l)))))),
+    armBtn('Удалить список',()=>{S.lists=S.lists.filter(x=>x.id!==l.id);ui.openList=null;commit();toast('Список удалён')})
+  ];
+}
+function aiCard(){
+  const ta=h('textarea',{placeholder:'Что готовим? Например: борщ на 4 порции, или продукты на неделю для студента до 3000 ₽','aria-label':'Запрос для ИИ'});
+  const go2=async()=>{
+    const q=ta.value.trim();if(!q){ta.focus();return}
+    ui.aiBusy=true;ui.aiErr='';render();
+    try{
+      const res=await sample.json(
+`Ты помогаешь составить список покупок в обычном российском супермаркете.
+Запрос пользователя: "${q.replace(/"/g,"'")}"
+Верни ТОЛЬКО JSON без пояснений, в формате:
+{"name":"короткое название списка","items":[{"name":"товар с фасовкой, напр. Свёкла 1 кг","qty":число,"price":примерная цена за одну штуку/упаковку в рублях, целое число}]}
+От 4 до 20 позиций. Цены реалистичные средние. Если указан бюджет, уложись в него.`,{modelTier:'quick'});
+      const items=(res&&Array.isArray(res.items)?res.items:[]).filter(i=>i&&i.name).slice(0,30)
+        .map(i=>({id:uid(),name:String(i.name).slice(0,80),qty:num(i.qty)||1,price:Math.max(0,num(i.price)),bought:null}));
+      if(!items.length)throw{message:'ИИ не вернул товары. Попробуй описать запрос подробнее.'};
+      const l={id:uid(),name:String(res.name||q).slice(0,60),date:today(),items};
+      S.lists.unshift(l);ui.openList=l.id;ui.aiBusy=false;commit();toast('Список готов. Цены примерные, поправь при необходимости.');
+    }catch(e){
+      ui.aiBusy=false;
+      ui.aiErr=e&&e.code==='not_granted'?'Доступ к ИИ не разрешён.':e&&e.code==='rate_limited'?'Слишком много запросов. Подожди минуту.':(e&&e.message)||'Не получилось собрать список. Попробуй ещё раз.';
+      render();
+    }
+  };
+  return h('section',{class:'card ai'},
+    h('h2',{},'Собрать список с ИИ'),
+    h('p',{class:'muted small',style:'margin:-4px 0 10px'},'Опиши блюдо или задачу, и ИИ составит список с примерными ценами.'),
+    ta,
+    h('div',{class:'row',style:'margin-top:10px;justify-content:flex-end'},
+      h('button',{class:'btn',disabled:ui.aiBusy,onclick:go2},ui.aiBusy?'Собираю…':'Собрать список')),
+    ui.aiErr?h('p',{class:'err'},ui.aiErr):null);
+}
+
+/* ---------- FINANCE ---------- */
+function monthOps(m){
+  const ops=S.tx.filter(t=>t.date.slice(0,7)===m).map(t=>({...t,src:'tx'}));
+  const groups={};
+  for(const l of S.lists)for(const i of l.items){
+    if(!i.bought||i.bought.slice(0,7)!==m)continue;
+    const k=l.id+'|'+i.bought;
+    (groups[k]=groups[k]||{id:k,date:i.bought,amount:0,cat:'Продукты',note:'Покупки: '+l.name,type:'exp',src:'list',listId:l.id}).amount+=itemSum(i);
+  }
+  return ops.concat(Object.values(groups)).sort((a,b)=>b.date.localeCompare(a.date));
+}
+function viewMoney(){
+  const m=ui.month,[y,mo]=m.split('-').map(Number);
+  const ops=monthOps(m);
+  const exp=ops.filter(o=>o.type==='exp').reduce((s,o)=>s+o.amount,0);
+  const inc=ops.filter(o=>o.type==='inc').reduce((s,o)=>s+o.amount,0);
+  const limit=num(S.budget.limit);
+  const daysIn=new Date(y,mo,0).getDate();
+  const cur=today().slice(0,7),isCur=m===cur;
+  const daysLeft=isCur?daysIn-new Date().getDate()+1:(m>cur?daysIn:0);
+  const left=limit-exp;
+  // planned (not yet bought) shopping this month
+  const planned=S.lists.filter(l=>l.date.slice(0,7)===m).reduce((s,l)=>s+l.items.filter(i=>!i.bought).reduce((a,i)=>a+itemSum(i),0),0);
+  const byCat={};ops.filter(o=>o.type==='exp').forEach(o=>byCat[o.cat]=(byCat[o.cat]||0)+o.amount);
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);const maxCat=cats.length?cats[0][1]:1;
+
+  const lim=h('input',{type:'number',min:'0',step:'100',value:limit||'',placeholder:'Например 15000','aria-label':'Лимит на месяц',inputmode:'numeric'});
+  const saveLim=()=>{S.budget.limit=num(lim.value);commit();toast('Лимит сохранён')};
+  lim.addEventListener('keydown',e=>{if(e.key==='Enter')saveLim()});
+  const amt=h('input',{type:'number',min:'0',step:'any',placeholder:'Сумма ₽','aria-label':'Сумма',inputmode:'decimal'});
+  const cat=h('select',{'aria-label':'Категория'},(ui.txType==='exp'?EXP_CATS:INC_CATS).map(c=>h('option',{},c)));
+  const note=h('input',{type:'text',placeholder:'Комментарий (необязательно)','aria-label':'Комментарий'});
+  const dt=h('input',{type:'date',value:isCur?today():`${m}-01`,'aria-label':'Дата'});
+  const addTx=()=>{const a=num(amt.value);if(a<=0){amt.focus();return}
+    S.tx.push({id:uid(),type:ui.txType,amount:a,cat:cat.value,note:note.value.trim(),date:dt.value||today()});
+    if(dt.value&&dt.value.slice(0,7)!==ui.month)ui.month=dt.value.slice(0,7);
+    commit();toast(ui.txType==='exp'?'Расход добавлен':'Доход добавлен')};
+  amt.addEventListener('keydown',e=>{if(e.key==='Enter')addTx()});
+
+  return [
+    h('div',{class:'monthnav'},
+      h('button',{class:'icon','aria-label':'Предыдущий месяц',onclick:()=>{ui.month=shiftMonth(m,-1);render()}},'‹'),
+      h('h2',{style:'margin:0'},monthTitle(m)),
+      h('button',{class:'icon','aria-label':'Следующий месяц',onclick:()=>{ui.month=shiftMonth(m,1);render()}},'›')),
+    h('section',{class:'card'},
+      h('div',{class:'muted small'},'Потрачено за месяц'),
+      h('div',{class:'big'},h('span',{class:'mark'},rub(exp))),
+      limit?[
+        h('div',{class:'bar'+(exp>limit?' over':''),style:'margin-top:12px'},h('i',{style:`width:${Math.min(100,exp/limit*100)}%`})),
+        h('p',{class:'small',style:'margin:8px 0 0'},exp>limit?h('span',{style:'color:var(--bad)'},`Лимит превышен на ${rub(exp-limit)}`):
+          `Осталось ${rub(left)} из ${rub(limit)}`+(daysLeft>0?`, это примерно ${rub(left/daysLeft)} в день`:''))
+      ]:h('p',{class:'small muted',style:'margin:8px 0 0'},'Задай лимит ниже, и я посчитаю, сколько можно тратить в день.'),
+      planned?h('p',{class:'small muted',style:'margin:6px 0 0'},`Ещё запланировано на покупки: ${rub(planned)}`):null,
+      h('div',{class:'stats'},
+        h('div',{class:'stat'},h('span',{class:'muted small'},'Доходы'),h('b',{style:'color:var(--good)'},rub(inc))),
+        h('div',{class:'stat'},h('span',{class:'muted small'},'Баланс месяца'),h('b',{},(inc-exp>=0?'+':'−')+rub(Math.abs(inc-exp)))))),
+    h('section',{class:'card'},h('h2',{},'Лимит расходов на месяц'),
+      h('div',{class:'row'},lim,h('button',{class:'btn',onclick:saveLim},'Сохранить'))),
+    h('section',{class:'card'},
+      h('div',{class:'row between wrapflex',style:'margin-bottom:12px'},
+        h('h2',{style:'margin:0'},'Новая операция'),
+        h('div',{class:'seg'},
+          h('button',{class:ui.txType==='exp'?'on':'',onclick:()=>{ui.txType='exp';render()}},'Расход'),
+          h('button',{class:ui.txType==='inc'?'on':'',onclick:()=>{ui.txType='inc';render()}},'Доход'))),
+      h('div',{class:'form2'},amt,cat,h('div',{class:'full'},note),dt,h('button',{class:'btn',onclick:addTx},'Добавить'))),
+    cats.length?h('section',{class:'card'},h('h2',{},'Куда уходят деньги'),
+      cats.map(([c,v])=>h('div',{class:'cat'},h('span',{},c),h('div',{class:'bar'},h('i',{style:`width:${v/maxCat*100}%`})),h('b',{style:'font-variant-numeric:tabular-nums'},rub(v))))):null,
+    h('section',{class:'card'},h('h2',{},'Операции'),
+      ops.length?ops.map(o=>h('div',{class:'op'},
+        h('span',{class:'grow'},o.note||o.cat,h('br'),h('span',{class:'muted small'},`${human(o.date)}, ${o.cat}${o.src==='list'?', из списка':''}`)),
+        h('span',{class:'amt'+(o.type==='inc'?' inc':'')},(o.type==='inc'?'+':'−')+rub(o.amount)),
+        o.src==='tx'?h('button',{class:'icon x','aria-label':'Удалить операцию',onclick:()=>{S.tx=S.tx.filter(t=>t.id!==o.id);commit()}},'×')
+          :h('button',{class:'icon','aria-label':'Открыть список',onclick:()=>go('shop',{openList:o.listId})},'›')
+      )):h('p',{class:'empty'},'В этом месяце операций нет.'))
+  ];
+}
+
+/* ---------- HABITS ---------- */
+function streak(hb){let d=today(),n=0;if(!hb.days[d])d=addDays(d,-1);while(hb.days[d]){n++;d=addDays(d,-1)}return n}
+function viewHabits(){
+  const inp=h('input',{type:'text',placeholder:'Например: 20 минут английского','aria-label':'Новая привычка'});
+  const add=()=>{const v=inp.value.trim();if(!v){inp.focus();return}S.habits.push({id:uid(),name:v,days:{}});commit()};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+  const t=today();const days=[...Array(7)].map((_,i)=>addDays(t,i-6));
+  return [
+    h('section',{class:'card'},h('h2',{},'Новая привычка'),h('div',{class:'row'},inp,h('button',{class:'btn',onclick:add},'Добавить'))),
+    h('section',{class:'card'},h('h2',{},'Последние 7 дней'),
+      S.habits.length?S.habits.map(hb=>{const s=streak(hb);return h('div',{class:'habit'},
+        h('div',{class:'row'},h('b',{class:'grow'},hb.name),
+          h('span',{class:'streak'},s?h('span',{class:'mark'},`🔥 ${s} ${plural(s)} подряд`):h('span',{class:'muted small'},'серии нет')),
+          h('button',{class:'icon x','aria-label':'Удалить привычку',onclick:()=>{S.habits=S.habits.filter(x=>x.id!==hb.id);commit()}},'×')),
+        h('div',{class:'cells'},days.map(d=>h('div',{class:'cell'},
+          h('button',{class:hb.days[d]?'on':'','aria-label':`${hb.name}, ${human(d)}`,'aria-pressed':hb.days[d]?'true':'false',
+            onclick:()=>{if(hb.days[d])delete hb.days[d];else hb.days[d]=true;commit()}}),
+          h('span',{},d===t?'сег.':WD[(dow(d)+6)%7])))))}
+      ):h('p',{class:'empty'},'Добавь привычку и отмечай каждый день, когда её выполнил.'))
+  ];
+}
+
+/* ---------- auth & sync ---------- */
+const ERR_RU={
+  'Invalid login credentials':'Неверная почта или пароль.',
+  'Email not confirmed':'Почта не подтверждена. Открой письмо от Supabase и перейди по ссылке.',
+  'User already registered':'Такой пользователь уже есть. Войди или восстанови пароль.',
+  'Password should be at least 6 characters.':'Пароль должен быть не короче 6 символов.'
+};
+const ruErr=e=>{const m=(e&&e.message)||String(e||'');
+  if(/rate limit/i.test(m))return'Слишком много попыток. Подожди немного и попробуй снова.';
+  if(m==='timeout')return'Сервер Supabase не отвечает. Проверь интернет или попробуй выключить/включить VPN.';
+  if(/fetch|network|load failed/i.test(m))return'Нет связи с сервером Supabase. Проверь интернет или VPN.';
+  if(/invalid.*email|email.*invalid/i.test(m))return'Почта указана с ошибкой.';
+  if(/redirect/i.test(m))return'Адрес сайта не добавлен в Supabase (Authentication → URL Configuration).';
+  return ERR_RU[m]||m||'Что-то пошло не так.'};
+const siteUrl=()=>/^https?:$/.test(location.protocol)?location.origin+location.pathname:undefined;
+let authEmail='';
+const withTimeout=(p,ms=15000)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+
+function hideAuth(){const a=document.getElementById('auth');a.hidden=true;a.innerHTML='';document.body.classList.remove('locked')}
+function showAuth(mode='login',msg='',err=''){
+  const box=document.getElementById('auth');box.hidden=false;box.innerHTML='';document.body.classList.add('locked');
+  const conf=!SUPABASE_URL.includes('ВАШ')&&!SUPABASE_KEY.includes('ВАШ');
+  const email=h('input',{type:'email',placeholder:'Почта',autocomplete:'email',value:authEmail,'aria-label':'Почта',oninput:e=>authEmail=e.target.value});
+  const pass=h('input',{type:'password',placeholder:mode==='login'?'Пароль':'Новый пароль, от 6 символов',autocomplete:mode==='login'?'current-password':'new-password','aria-label':'Пароль'});
+  const sub={login:'Войти',signup:'Зарегистрироваться',forgot:'Отправить ссылку',reset:'Сохранить пароль'}[mode];
+  const btn=h('button',{class:'btn',type:'submit'},sub);
+  const form=h('form',{novalidate:true,onsubmit:async e=>{
+    e.preventDefault();
+    if(!sb){showAuth(mode,'',!window.supabase?'Не загрузилась библиотека Supabase. Открой планер по ссылке GitHub Pages (не из превью в чате) и проверь интернет.':'Планер не подключён к Supabase.');return}
+    const em=email.value.trim();authEmail=em;
+    if(mode!=='reset'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){showAuth(mode,'','Введи почту в формате name@mail.ru.');return}
+    if(mode!=='forgot'&&pass.value.length<6){showAuth(mode,'','Пароль должен быть не короче 6 символов.');return}
+    btn.disabled=true;btn.textContent='Подожди…';
+    try{
+      if(mode==='login'){const {error}=await withTimeout(sb.auth.signInWithPassword({email:em,password:pass.value}));if(error)throw error}
+      else if(mode==='signup'){
+        const {data,error}=await withTimeout(sb.auth.signUp({email:em,password:pass.value,options:{emailRedirectTo:siteUrl()}}));
+        if(error)throw error;
+        if(!data.session)showAuth('login',`Мы отправили письмо на ${em}. Перейди по ссылке из письма, потом войди.`);
+      }
+      else if(mode==='forgot'){const {error}=await withTimeout(sb.auth.resetPasswordForEmail(em,{redirectTo:siteUrl()}));if(error)throw error;
+        showAuth('login','Если такой аккаунт есть, письмо со ссылкой для сброса уже в пути.')}
+      else if(mode==='reset'){const {error}=await withTimeout(sb.auth.updateUser({password:pass.value}));if(error)throw error;hideAuth();toast('Пароль изменён')}
+    }catch(er){showAuth(mode,'',ruErr(er))}
+  }},
+    mode!=='reset'?email:null, mode!=='forgot'?pass:null, btn);
+  const sw=(m,label)=>h('button',{class:'linkbtn',type:'button',onclick:()=>showAuth(m)},label);
+  box.append(h('div',{class:'authbox'},
+    h('h1',{},h('span',{class:'mark'},'Планер')),
+    h('p',{class:'muted',style:'margin:0'},{login:'Войди, чтобы твои дела были на всех устройствах.',signup:'Создай аккаунт. Понадобятся только почта и пароль.',
+      forgot:'Укажи почту, и мы пришлём ссылку для нового пароля.',reset:'Придумай новый пароль.'}[mode]),
+    !conf?h('p',{class:'err'},'Планер ещё не подключён к Supabase: вставь адрес проекта и ключ в начало скрипта.'):null,
+    !window.supabase?h('p',{class:'err'},'Не загрузилась библиотека Supabase. Проверь интернет и обнови страницу.'):null,
+    form,
+    msg?h('p',{class:'okmsg'},msg):null, err?h('p',{class:'err'},err):null,
+    h('div',{class:'row between wrapflex',style:'margin-top:14px'},
+      mode==='login'?[sw('signup','Создать аккаунт'),sw('forgot','Забыл пароль')]:mode!=='reset'?sw('login','У меня уже есть аккаунт'):null)));
+}
+
+async function loadRemote(){
+  if(!session)return;
+  const {data,error}=await sb.from('planner_data').select('data').eq('user_id',session.user.id).maybeSingle();
+  if(error){setSync('Нет связи');return}
+  if(data&&data.data)S=normalize(data.data);
+  else{S=DEFAULT();await pushDb()}
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  dirty=false;render();setSync('Сохранено');
+}
+async function onSession(s){
+  const same=session&&s&&session.user.id===s.user.id;
+  session=s;
+  if(!s){S=DEFAULT();render();showAuth();return}
+  if(same)return;
+  hideAuth();
+  KEY='planer:'+s.user.id;
+  try{const raw=localStorage.getItem(KEY);S=raw?normalize(JSON.parse(raw)):DEFAULT()}catch(e){S=DEFAULT()}
+  render();setSync('Загружаю…');
+  await loadRemote();
+}
+async function logout(){
+  if(dirty)await pushDb();
+  try{localStorage.removeItem(KEY)}catch(e){}
+  ui.dataSheet=false;ui.picker=null;
+  await sb.auth.signOut();
+}
+
+render();
+if(window.supabase&&!SUPABASE_URL.includes('ВАШ')){
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  sb.auth.onAuthStateChange((event,s)=>{
+    if(event==='PASSWORD_RECOVERY'){session=s;setTimeout(()=>showAuth('reset'),0);return}
+    if(event==='TOKEN_REFRESHED'||event==='USER_UPDATED'){session=s;return}
+    setTimeout(()=>onSession(s),0);
+  });
+}else showAuth();
+
+// подтягиваем свежие данные, когда возвращаешься во вкладку (например, после правок с телефона)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&session&&!dirty&&!ui.picker&&!ui.dataSheet)loadRemote();
+});
+window.addEventListener('beforeunload',e=>{if(dirty){pushDb();e.preventDefault();e.returnValue=''}});
+</script>
+</body>
+</html>
